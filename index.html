@@ -1,64 +1,139 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ultra Calendar 2026</title>
-  <link rel="stylesheet" href="styles.css">
-  <style>
-    body { font-family: Arial, sans-serif; padding: 20px; }
-    .event { margin: 5px 0; }
-    .event a { text-decoration: none; color: #007bff; }
-    .event a:hover { text-decoration: underline; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ultra Calendar 2026</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+  body { font-family: Arial, sans-serif; padding: 20px; }
+  #root { max-width: 1000px; margin: auto; }
+  .controls { display: flex; justify-content: space-between; margin-bottom: 10px; }
+  .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .month { font-weight: bold; font-size: 1.5em; }
+  .event { margin: 5px 0; }
+  .event a { text-decoration: none; color: #007bff; }
+  .event a:hover { text-decoration: underline; }
+  .filters { margin-bottom: 10px; }
+  button { padding: 5px 10px; margin: 0 5px; }
+</style>
 </head>
 <body>
-  <h1>Kalendarz imprez rowerowych 2026</h1>
-  <div id="root"></div>
+<h1>Kalendarz imprez rowerowych 2026</h1>
+<div id="root"></div>
 
-  <!-- React i ReactDOM UMD -->
-  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
-  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<!-- React i ReactDOM UMD -->
+<script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
 
-  <!-- Babel do JSX -->
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<!-- Babel do JSX -->
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-  <!-- Plik z eventami -->
-  <script src="events.js"></script>
+<!-- Plik z eventami -->
+<script src="events.js"></script>
 
-  <!-- Kod React w JSX -->
-  <script type="text/babel">
+<script type="text/babel">
 
-    function EventList() {
-      return (
+const MONTH_NAMES = ["Styczeń","Luty","Marzec","Kwiecień","Maj","Czerwiec","Lipiec","Sierpień","Wrzesień","Październik","Listopad","Grudzień"];
+
+function App() {
+  const [view, setView] = React.useState('list'); // 'list' lub 'calendar'
+  const [filterType, setFilterType] = React.useState('');
+  const [filterMinDistance, setFilterMinDistance] = React.useState('');
+  const [filterMaxDistance, setFilterMaxDistance] = React.useState('');
+
+  // Znalezienie pierwszej imprezy
+  const firstEventDate = React.useMemo(() => {
+    if (EVENTS.length === 0) return new Date();
+    const dates = EVENTS.map(e => new Date(e.dateStart));
+    return new Date(Math.min(...dates));
+  }, []);
+
+  const [currentMonth, setCurrentMonth] = React.useState(firstEventDate.getMonth());
+  const [currentYear] = React.useState(firstEventDate.getFullYear());
+
+  const filteredEvents = React.useMemo(() => {
+    return EVENTS.filter(e => {
+      if (filterType && !e.types.includes(filterType)) return false;
+      if (filterMinDistance && Math.max(...e.distances) < parseInt(filterMinDistance)) return false;
+      if (filterMaxDistance && Math.min(...e.distances) > parseInt(filterMaxDistance)) return false;
+      return true;
+    });
+  }, [filterType, filterMinDistance, filterMaxDistance]);
+
+  const eventsByMonth = React.useMemo(() => {
+    const eventsMap = {};
+    filteredEvents.forEach(e => {
+      const month = new Date(e.dateStart).getMonth();
+      if (!eventsMap[month]) eventsMap[month] = [];
+      eventsMap[month].push(e);
+    });
+    return eventsMap;
+  }, [filteredEvents]);
+
+  const handlePrevMonth = () => setCurrentMonth((currentMonth + 11) % 12);
+  const handleNextMonth = () => setCurrentMonth((currentMonth + 1) % 12);
+
+  return (
+    <div>
+      <div className="controls">
         <div>
-          {EVENTS.map(event => (
-            <div key={event.id} className="event">
-              {event.url ? (
-                <a href={event.url} target="_blank" rel="noopener noreferrer">
-                  {event.title}
-                </a>
-              ) : (
-                <span>{event.title}</span>
-              )}
-              {' '} - {event.dateStart}
-              {event.dateEnd ? ` do ${event.dateEnd}` : ''}
-              {' '}[{event.distances.join('/')} km]
+          Widok:
+          <button onClick={() => setView('list')}>Lista</button>
+          <button onClick={() => setView('calendar')}>Kalendarz</button>
+        </div>
+        <div className="filters">
+          Typ roweru:
+          <select value={filterType} onChange={e => setFilterType(e.target.value)}>
+            <option value="">Wszystkie</option>
+            <option value="Sz">Szosa</option>
+            <option value="G">Gravel</option>
+            <option value="M">MTB</option>
+            <option value="E">Electric</option>
+            <option value="B&R">BikeRafting</option>
+          </select>
+          Dystans min:
+          <input type="number" value={filterMinDistance} onChange={e => setFilterMinDistance(e.target.value)} style={{width:'60px'}} />
+          max:
+          <input type="number" value={filterMaxDistance} onChange={e => setFilterMaxDistance(e.target.value)} style={{width:'60px'}} />
+        </div>
+      </div>
+
+      {view === 'list' ? (
+        <div>
+          {filteredEvents.map(e => (
+            <div key={e.id} className="event">
+              {e.url ? <a href={e.url} target="_blank" rel="noopener noreferrer">{e.title}</a> : e.title}
+              {' '} - {e.dateStart}{e.dateEnd ? ` do ${e.dateEnd}` : ''}
+              {' '}[{e.distances.join('/')} km]
             </div>
           ))}
         </div>
-      );
-    }
-
-    function KalendarzImprez() {
-      return (
+      ) : (
         <div>
-          <EventList />
+          <div className="calendar-header">
+            <button onClick={handlePrevMonth}>◀</button>
+            <div className="month">{MONTH_NAMES[currentMonth]} {currentYear}</div>
+            <button onClick={handleNextMonth}>▶</button>
+          </div>
+          <div>
+            {(eventsByMonth[currentMonth] || []).map(e => (
+              <div key={e.id} className="event">
+                {e.url ? <a href={e.url} target="_blank" rel="noopener noreferrer">{e.title}</a> : e.title}
+                {' '} - {e.dateStart}{e.dateEnd ? ` do ${e.dateEnd}` : ''}
+                {' '}[{e.distances.join('/')} km]
+              </div>
+            ))}
+            {(eventsByMonth[currentMonth] || []).length === 0 && <div>Brak wydarzeń w tym miesiącu</div>}
+          </div>
         </div>
-      );
-    }
+      )}
+    </div>
+  );
+}
 
-    ReactDOM.createRoot(document.getElementById("root")).render(<KalendarzImprez />);
-  </script>
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+
+</script>
 </body>
 </html>
