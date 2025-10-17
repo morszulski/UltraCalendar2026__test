@@ -7,176 +7,204 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   </head>
-  <body class="bg-gray-100">
-    <div id="root"></div>
+  <body class="bg-gray-50 text-gray-800">
+    <div id="root" class="max-w-5xl mx-auto p-4"></div>
 
-    <script type="text/babel">
-      const { useState, useMemo } = React;
+    <!-- Ładujemy dane osobno -->
+    <script src="events.js"></script>
 
-      const EVENTS = [
-        { id:1, dateStart:'2026-03-14', title:'PBT - Rozgrzewka', types:['G','M','Sz'], distances:[100,200,500] },
-        { id:2, dateStart:'2026-04-11', title:'Trojak Kowala: Pierwsza Iskra', types:['G','Sz'], distances:[150,225,300] },
-        { id:3, dateStart:'2026-04-18', title:'Pyra Trail', types:['G'], distances:[150,300] },
-        { id:4, dateStart:'2026-04-24', dateEnd:'2026-04-25', title:'Mały Piękny Zachód', types:['Sz'], distances:[101,201,301] },
-        { id:5, dateStart:'2026-04-25', title:'Po Grudzie', types:['G'], distances:[100,200,300] },
-        { id:6, dateStart:'2026-04-25', title:'Czarne Serce', types:['M','G'], distances:[200] },
-        { id:7, dateStart:'2026-04-25', title:'Ultra Duch Jabłoni', types:['Sz'], distances:[120,250,360] },
-        { id:8, dateStart:'2026-05-01', title:'PBT - Gryf', types:['G','M','Sz'], distances:[120,200,220] },
-        { id:9, dateStart:'2026-05-01', title:'GravOn | Along The River', types:['G'], distances:[850] },
-        { id:10, dateStart:'2026-05-02', title:'PBT - Bałtyk 600', types:['G','M','Sz'], distances:[600] },
-        { id:11, dateStart:'2026-05-08', title:'Ułan 600', types:['G'], distances:[120,160,260,450] },
-        { id:12, dateStart:'2026-05-09', dateEnd:'2026-05-10', title:'Piękny Zachód', types:['Sz'], distances:[61,101,201,301,501] },
-        { id:13, dateStart:'2026-05-09', title:'Baltic Bike Challenge', types:['G'], distances:[150,500] },
-        { id:14, dateStart:'2026-05-11', title:'Przeciskach', types:['M'], distances:[350,410,700] },
-        { id:15, dateStart:'2026-05-22', title:'Sudovia Gravel', types:['G','E'], distances:[450,500] },
-        { id:16, dateStart:'2026-05-23', title:'Zakopane [Race Through Poland]', types:['Sz'], distances:[] },
-        { id:19, dateStart:'2026-05-30', dateEnd:'2026-05-31', title:'Wanoga Gravel', types:['G'], distances:[150,300,500] },
-        { id:20, dateStart:'2026-06-04', title:'Pomorska 500-ka', types:['G'], distances:[500] },
-        { id:22, dateStart:'2026-06-06', title:'PBT - Wschód 1200', types:['G','Sz'], distances:[1200] },
-        { id:33, dateStart:'2026-06-27', title:'Race Around Poland', types:['Sz'], distances:[300,900,1800,3600] },
-        { id:36, dateStart:'2026-07-04', title:'Pierścień Tysiąca Jezior', types:['Sz'], distances:[140,300,610] },
-        { id:37, dateStart:'2026-07-04', title:'Wisła 1200', types:['G'], distances:[1200] },
-        { id:47, dateStart:'2026-08-01', title:'PBT - Zachód 800', types:['G','Sz'], distances:[800] },
-        { id:54, dateStart:'2026-08-15', title:'PBT - Polska 3200', types:['G','M'], distances:[3200] },
-        { id:57, dateStart:'2026-08-28', title:'Trojak Kowala: Wszyscy Jesteśmy Kowalami', types:['G','Sz'], distances:[200,400,600] },
-        { id:63, dateStart:'2026-09-12', title:'Maraton Północ - Południe', types:['Sz'], distances:[1000] },
-        { id:68, dateStart:'2026-10-03', title:'PBT - Rozjazd', types:['G','M','Sz'], distances:[100,200,250,500,550] },
-        { id:69, dateStart:'2026-10-17', title:'Robinsonada Pomorska', types:['G'], distances:[150,250,500] }
-      ];
-
-      const ALL_TYPES = ['Sz','G','M','E','B&R'];
-      const formatDate = (dt) => new Date(dt).toLocaleDateString('pl-PL',{year:'numeric',month:'short',day:'numeric'});
-
+    <script type="text/javascript">
       function KalendarzImprez() {
         const today = new Date();
-        const firstEventDate = new Date([...EVENTS].sort((a,b)=>new Date(a.dateStart)-new Date(b.dateStart))[0].dateStart);
-        const initialMonthOffset = (firstEventDate.getFullYear()-today.getFullYear())*12 + (firstEventDate.getMonth()-today.getMonth());
 
-        const [monthOffset,setMonthOffset]=useState(initialMonthOffset);
-        const [selectedTypes,setSelectedTypes]=useState(new Set());
-        const [minDist,setMinDist]=useState('');
-        const [maxDist,setMaxDist]=useState('');
-        const [search,setSearch]=useState('');
-        const [view,setView]=useState('list'); // 'list' | 'calendar'
+        const firstEventDate = new Date(
+          [...EVENTS].sort((a, b) => new Date(a.dateStart) - new Date(b.dateStart))[0].dateStart
+        );
+        const initialMonthOffset =
+          (firstEventDate.getFullYear() - today.getFullYear()) * 12 +
+          (firstEventDate.getMonth() - today.getMonth());
 
-        const viewMonth=new Date(today.getFullYear(),today.getMonth()+monthOffset,1);
-        const monthLabel=viewMonth.toLocaleString('pl-PL',{month:'long',year:'numeric'});
+        const [monthOffset, setMonthOffset] = React.useState(initialMonthOffset);
+        const [search, setSearch] = React.useState("");
+        const [minDist, setMinDist] = React.useState("");
+        const [maxDist, setMaxDist] = React.useState("");
+        const [selectedTypes, setSelectedTypes] = React.useState(new Set());
 
-        const toggleType=(t)=>{
-          const s=new Set(selectedTypes);
-          s.has(t)?s.delete(t):s.add(t);
-          setSelectedTypes(s);
-        };
+        const shownMonth = new Date(today.getFullYear(), today.getMonth() + monthOffset, 1);
+        const monthLabel = shownMonth.toLocaleDateString("pl-PL", { month: "long", year: "numeric" });
 
-        const filtered=useMemo(()=>EVENTS.filter(ev=>{
-          const evDate=new Date(ev.dateStart);
-          const evEnd=ev.dateEnd?new Date(ev.dateEnd):null;
-          const monthStart=new Date(viewMonth.getFullYear(),viewMonth.getMonth(),1);
-          const monthEnd=new Date(viewMonth.getFullYear(),viewMonth.getMonth()+1,0);
-          const inMonth=(evDate<=monthEnd)&&((evEnd?evEnd>=monthStart:evDate>=monthStart));
-          if(!inMonth) return false;
-          if(selectedTypes.size>0 && !ev.types.some(t=>selectedTypes.has(t))) return false;
-          if(minDist||maxDist){
-            const min=minDist?parseInt(minDist):0;
-            const max=maxDist?parseInt(maxDist):Infinity;
-            if(!ev.distances.some(d=>d>=min&&d<=max)) return false;
-          }
-          if(search && !ev.title.toLowerCase().includes(search.toLowerCase())) return false;
-          return true;
-        }).sort((a,b)=>new Date(a.dateStart)-new Date(b.dateStart)),[viewMonth,selectedTypes,minDist,maxDist,search]);
+        const formatDate = (d) =>
+          new Date(d).toLocaleDateString("pl-PL", { day: "2-digit", month: "2-digit" });
 
-        const daysInMonth = new Date(viewMonth.getFullYear(), viewMonth.getMonth()+1, 0).getDate();
-        const firstDayOfWeek = new Date(viewMonth.getFullYear(), viewMonth.getMonth(), 1).getDay() || 7;
+        const filtered = EVENTS.filter((ev) => {
+          const evDate = new Date(ev.dateStart);
+          const sameMonth =
+            evDate.getFullYear() === shownMonth.getFullYear() &&
+            evDate.getMonth() === shownMonth.getMonth();
+
+          const matchesSearch = search
+            ? ev.title.toLowerCase().includes(search.toLowerCase())
+            : true;
+
+          const matchesType =
+            selectedTypes.size === 0 ||
+            ev.types.some((t) => selectedTypes.has(t));
+
+          const min = minDist ? Number(minDist) : 0;
+          const max = maxDist ? Number(maxDist) : Infinity;
+          const matchesDist = ev.distances.some(
+            (d) => d >= min && d <= max
+          );
+
+          return sameMonth && matchesSearch && matchesType && matchesDist;
+        });
+
+        const allTypes = [...new Set(EVENTS.flatMap((e) => e.types))];
+
+        // Kalendarz: dni i pierwszy dzień tygodnia
+        const daysInMonth = new Date(shownMonth.getFullYear(), shownMonth.getMonth() + 1, 0).getDate();
+        const firstDayOfWeek = new Date(shownMonth.getFullYear(), shownMonth.getMonth(), 1).getDay() || 7;
 
         return (
-          <div className="min-h-screen bg-gray-50 p-6">
-            <div className="max-w-6xl mx-auto bg-white rounded-2xl shadow-lg p-6">
-              <header className="flex items-center justify-between mb-4">
-                <h1 className="text-2xl font-semibold">Kalendarz Imprez Rowerowych (2026)</h1>
-                <div className="text-sm text-gray-600">Stan danych: 14.10.2025</div>
-              </header>
+          <div className="bg-white rounded-2xl shadow p-4">
+            <div className="relative flex items-center justify-center mb-4">
+              <button
+                onClick={() => setMonthOffset((m) => m - 1)}
+                className="absolute left-0 px-3 py-1 rounded bg-gray-100"
+              >
+                ◀
+              </button>
 
-              <section className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <div>
-                  <div className="relative flex items-center justify-center mb-4">
-                    <button onClick={()=>setMonthOffset(m=>m-1)} className="absolute left-0 px-3 py-1 rounded bg-gray-100">◀</button>
-                    <div className="font-medium text-lg">{monthLabel}</div>
-                    <button onClick={()=>setMonthOffset(m=>m+1)} className="absolute right-0 px-3 py-1 rounded bg-gray-100">▶</button>
-                    <button
-                      onClick={()=>{
-                        setMonthOffset(initialMonthOffset);
-                        setSelectedTypes(new Set());
-                        setMinDist('');
-                        setMaxDist('');
-                        setSearch('');
-                      }}
-                      className="absolute right-16 text-sm text-blue-600"
-                    >Reset</button>
+              <div className="font-medium text-lg capitalize">{monthLabel}</div>
+
+              <button
+                onClick={() => setMonthOffset((m) => m + 1)}
+                className="absolute right-0 px-3 py-1 rounded bg-gray-100"
+              >
+                ▶
+              </button>
+
+              <button
+                onClick={() => {
+                  setMonthOffset(initialMonthOffset);
+                  setSelectedTypes(new Set());
+                  setMinDist("");
+                  setMaxDist("");
+                  setSearch("");
+                }}
+                className="absolute right-16 text-sm text-blue-600"
+              >
+                Reset
+              </button>
+            </div>
+
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Szukaj imprezy..."
+              className="w-full border rounded px-3 py-2 mb-3"
+            />
+
+            <div className="flex flex-wrap gap-2 mb-4">
+              {allTypes.map((t) => (
+                <button
+                  key={t}
+                  onClick={() => {
+                    const s = new Set(selectedTypes);
+                    s.has(t) ? s.delete(t) : s.add(t);
+                    setSelectedTypes(s);
+                  }}
+                  className={`px-3 py-1 rounded border ${
+                    selectedTypes.has(t)
+                      ? "bg-blue-500 text-white"
+                      : "bg-gray-50"
+                  }`}
+                >
+                  {t}
+                </button>
+              ))}
+            </div>
+
+            <div className="flex gap-2 mb-4">
+              <input
+                type="number"
+                placeholder="min km"
+                value={minDist}
+                onChange={(e) => setMinDist(e.target.value)}
+                className="w-1/2 border rounded px-2 py-1"
+              />
+              <input
+                type="number"
+                placeholder="max km"
+                value={maxDist}
+                onChange={(e) => setMaxDist(e.target.value)}
+                className="w-1/2 border rounded px-2 py-1"
+              />
+            </div>
+
+            <h2 className="font-semibold mb-2">Widok listy:</h2>
+            <ul className="space-y-2 mb-6">
+              {filtered.length === 0 && (
+                <li className="text-gray-400 italic">Brak imprez w tym miesiącu</li>
+              )}
+              {filtered.map((ev) => (
+                <li
+                  key={ev.id}
+                  className="border rounded-lg p-3 hover:bg-gray-50 transition"
+                >
+                  <div className="font-medium">
+                    {ev.url ? (
+                      <a
+                        href={ev.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:underline"
+                      >
+                        {ev.title}
+                      </a>
+                    ) : (
+                      ev.title
+                    )}
                   </div>
-
-                  <div className="flex justify-center mb-4">
-                    <button onClick={()=>setView('list')} className={`px-3 py-1 rounded-l ${view==='list'?'bg-blue-500 text-white':'bg-gray-100'}`}>Lista</button>
-                    <button onClick={()=>setView('calendar')} className={`px-3 py-1 rounded-r ${view==='calendar'?'bg-blue-500 text-white':'bg-gray-100'}`}>Kalendarz</button>
+                  <div className="text-sm text-gray-600">
+                    {new Date(ev.dateStart).toLocaleDateString("pl-PL", { day: "2-digit", month: "2-digit" })}
+                    {ev.dateEnd ? ` - ${new Date(ev.dateEnd).toLocaleDateString("pl-PL", { day: "2-digit", month: "2-digit" })}` : ""}
                   </div>
+                  <div className="text-sm">
+                    Typ: {ev.types.join(", ")} | Dystanse: {ev.distances.join("/")} km
+                  </div>
+                </li>
+              ))}
+            </ul>
 
-                  <label className="block text-xs text-gray-500">Szukaj</label>
-                  <input value={search} onChange={e=>setSearch(e.target.value)} className="w-full border rounded px-2 py-1 mb-4" placeholder="np. Zakopane"/>
-
-                  <label className="block text-xs text-gray-500">Typ roweru</label>
-                  <div className="flex flex-wrap gap-2 mt-2 mb-4">
-                    {ALL_TYPES.map(t=>(
-                      <button key={t} onClick={()=>toggleType(t)} className={`px-2 py-1 rounded border ${selectedTypes.has(t)?'bg-blue-500 text-white':'bg-gray-50'}`}>{t}</button>
+            <h2 className="font-semibold mb-2">Widok kalendarza:</h2>
+            <div className="grid grid-cols-7 gap-1 text-center text-sm">
+              {['Pn','Wt','Śr','Cz','Pt','So','Nd'].map(d => <div key={d} className="font-semibold">{d}</div>)}
+              {Array.from({length:firstDayOfWeek-1}).map((_,i)=><div key={`empty${i}`}></div>)}
+              {Array.from({length:daysInMonth}).map((_,i)=>{
+                const day = i+1;
+                const dayEvents = filtered.filter(ev => new Date(ev.dateStart).getDate() === day);
+                return (
+                  <div key={day} className="border h-24 p-1 rounded text-left overflow-hidden hover:bg-gray-50">
+                    <div className="font-semibold text-xs">{day}</div>
+                    {dayEvents.map(ev => (
+                      <div key={ev.id} className="text-[10px] truncate">
+                        {ev.url ? (
+                          <a href={ev.url} target="_blank" rel="noopener noreferrer" className="text-blue-700 hover:underline">{ev.title}</a>
+                        ) : ev.title}
+                      </div>
                     ))}
                   </div>
-
-                  <label className="block text-xs text-gray-500">Filtr dystansu (km)</label>
-                  <div className="flex gap-2 mt-2">
-                    <input type="number" value={minDist} onChange={e=>setMinDist(e.target.value)} className="w-1/2 border rounded px-2 py-1" placeholder="min"/>
-                    <input type="number" value={maxDist} onChange={e=>setMaxDist(e.target.value)} className="w-1/2 border rounded px-2 py-1" placeholder="max"/>
-                  </div>
-                </div>
-
-                <div className="md:col-span-2">
-                  {view==='list' ? (
-                    <ul className="space-y-2">
-                      {filtered.length===0 && <li className="text-gray-400 italic">Brak imprez w tym miesiącu</li>}
-                      {filtered.map(ev=>(
-                        <li key={ev.id} className="border rounded-lg p-3 hover:bg-gray-50">
-                          <div className="font-medium">{ev.title}</div>
-                          <div className="text-sm text-gray-600">{formatDate(ev.dateStart)}{ev.dateEnd?` - ${formatDate(ev.dateEnd)}`:''}</div>
-                          <div className="text-sm">Typ: {ev.types.join(', ')} | Dystanse: {ev.distances.join('/')} km</div>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <div className="grid grid-cols-7 gap-1 text-center text-sm">
-                      {['Pn','Wt','Śr','Cz','Pt','So','Nd'].map(d=><div key={d} className="font-semibold">{d}</div>)}
-                      {Array.from({length:firstDayOfWeek-1}).map((_,i)=><div key={`e${i}`}></div>)}
-                      {Array.from({length:daysInMonth}).map((_,i)=>{
-                        const day=i+1;
-                        const dateStr=`${viewMonth.getFullYear()}-${String(viewMonth.getMonth()+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
-                        const dayEvents=filtered.filter(ev=>ev.dateStart===dateStr);
-                        return (
-                          <div key={day} className="border h-24 p-1 rounded text-left overflow-hidden hover:bg-gray-50">
-                            <div className="font-semibold text-xs">{day}</div>
-                            {dayEvents.map(ev=>(
-                              <div key={ev.id} className="text-[10px] text-blue-700 truncate">{ev.title}</div>
-                            ))}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              </section>
+                )
+              })}
             </div>
           </div>
         );
       }
 
-      ReactDOM.createRoot(document.getElementById('root')).render(<KalendarzImprez />);
+      ReactDOM.createRoot(document.getElementById("root")).render(<KalendarzImprez />);
     </script>
   </body>
 </html>
