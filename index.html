@@ -1,210 +1,64 @@
 <!DOCTYPE html>
 <html lang="pl">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Kalendarz Imprez Rowerowych 2026</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-  </head>
-  <body class="bg-gray-50 text-gray-800">
-    <div id="root" class="max-w-5xl mx-auto p-4"></div>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ultra Calendar 2026</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    .event { margin: 5px 0; }
+    .event a { text-decoration: none; color: #007bff; }
+    .event a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <h1>Kalendarz imprez rowerowych 2026</h1>
+  <div id="root"></div>
 
-    <!-- Ładujemy dane osobno -->
-    <script src="events.js"></script>
+  <!-- React i ReactDOM UMD -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
 
-    <script type="text/javascript">
-      function KalendarzImprez() {
-        const today = new Date();
+  <!-- Babel do JSX -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-        const firstEventDate = new Date(
-          [...EVENTS].sort((a, b) => new Date(a.dateStart) - new Date(b.dateStart))[0].dateStart
-        );
-        const initialMonthOffset =
-          (firstEventDate.getFullYear() - today.getFullYear()) * 12 +
-          (firstEventDate.getMonth() - today.getMonth());
+  <!-- Plik z eventami -->
+  <script src="events.js"></script>
 
-        const [monthOffset, setMonthOffset] = React.useState(initialMonthOffset);
-        const [search, setSearch] = React.useState("");
-        const [minDist, setMinDist] = React.useState("");
-        const [maxDist, setMaxDist] = React.useState("");
-        const [selectedTypes, setSelectedTypes] = React.useState(new Set());
+  <!-- Kod React w JSX -->
+  <script type="text/babel">
 
-        const shownMonth = new Date(today.getFullYear(), today.getMonth() + monthOffset, 1);
-        const monthLabel = shownMonth.toLocaleDateString("pl-PL", { month: "long", year: "numeric" });
-
-        const formatDate = (d) =>
-          new Date(d).toLocaleDateString("pl-PL", { day: "2-digit", month: "2-digit" });
-
-        const filtered = EVENTS.filter((ev) => {
-          const evDate = new Date(ev.dateStart);
-          const sameMonth =
-            evDate.getFullYear() === shownMonth.getFullYear() &&
-            evDate.getMonth() === shownMonth.getMonth();
-
-          const matchesSearch = search
-            ? ev.title.toLowerCase().includes(search.toLowerCase())
-            : true;
-
-          const matchesType =
-            selectedTypes.size === 0 ||
-            ev.types.some((t) => selectedTypes.has(t));
-
-          const min = minDist ? Number(minDist) : 0;
-          const max = maxDist ? Number(maxDist) : Infinity;
-          const matchesDist = ev.distances.some(
-            (d) => d >= min && d <= max
-          );
-
-          return sameMonth && matchesSearch && matchesType && matchesDist;
-        });
-
-        const allTypes = [...new Set(EVENTS.flatMap((e) => e.types))];
-
-        // Kalendarz: dni i pierwszy dzień tygodnia
-        const daysInMonth = new Date(shownMonth.getFullYear(), shownMonth.getMonth() + 1, 0).getDate();
-        const firstDayOfWeek = new Date(shownMonth.getFullYear(), shownMonth.getMonth(), 1).getDay() || 7;
-
-        return (
-          <div className="bg-white rounded-2xl shadow p-4">
-            <div className="relative flex items-center justify-center mb-4">
-              <button
-                onClick={() => setMonthOffset((m) => m - 1)}
-                className="absolute left-0 px-3 py-1 rounded bg-gray-100"
-              >
-                ◀
-              </button>
-
-              <div className="font-medium text-lg capitalize">{monthLabel}</div>
-
-              <button
-                onClick={() => setMonthOffset((m) => m + 1)}
-                className="absolute right-0 px-3 py-1 rounded bg-gray-100"
-              >
-                ▶
-              </button>
-
-              <button
-                onClick={() => {
-                  setMonthOffset(initialMonthOffset);
-                  setSelectedTypes(new Set());
-                  setMinDist("");
-                  setMaxDist("");
-                  setSearch("");
-                }}
-                className="absolute right-16 text-sm text-blue-600"
-              >
-                Reset
-              </button>
-            </div>
-
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Szukaj imprezy..."
-              className="w-full border rounded px-3 py-2 mb-3"
-            />
-
-            <div className="flex flex-wrap gap-2 mb-4">
-              {allTypes.map((t) => (
-                <button
-                  key={t}
-                  onClick={() => {
-                    const s = new Set(selectedTypes);
-                    s.has(t) ? s.delete(t) : s.add(t);
-                    setSelectedTypes(s);
-                  }}
-                  className={`px-3 py-1 rounded border ${
-                    selectedTypes.has(t)
-                      ? "bg-blue-500 text-white"
-                      : "bg-gray-50"
-                  }`}
-                >
-                  {t}
-                </button>
-              ))}
-            </div>
-
-            <div className="flex gap-2 mb-4">
-              <input
-                type="number"
-                placeholder="min km"
-                value={minDist}
-                onChange={(e) => setMinDist(e.target.value)}
-                className="w-1/2 border rounded px-2 py-1"
-              />
-              <input
-                type="number"
-                placeholder="max km"
-                value={maxDist}
-                onChange={(e) => setMaxDist(e.target.value)}
-                className="w-1/2 border rounded px-2 py-1"
-              />
-            </div>
-
-            <h2 className="font-semibold mb-2">Widok listy:</h2>
-            <ul className="space-y-2 mb-6">
-              {filtered.length === 0 && (
-                <li className="text-gray-400 italic">Brak imprez w tym miesiącu</li>
+    function EventList() {
+      return (
+        <div>
+          {EVENTS.map(event => (
+            <div key={event.id} className="event">
+              {event.url ? (
+                <a href={event.url} target="_blank" rel="noopener noreferrer">
+                  {event.title}
+                </a>
+              ) : (
+                <span>{event.title}</span>
               )}
-              {filtered.map((ev) => (
-                <li
-                  key={ev.id}
-                  className="border rounded-lg p-3 hover:bg-gray-50 transition"
-                >
-                  <div className="font-medium">
-                    {ev.url ? (
-                      <a
-                        href={ev.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 hover:underline"
-                      >
-                        {ev.title}
-                      </a>
-                    ) : (
-                      ev.title
-                    )}
-                  </div>
-                  <div className="text-sm text-gray-600">
-                    {new Date(ev.dateStart).toLocaleDateString("pl-PL", { day: "2-digit", month: "2-digit" })}
-                    {ev.dateEnd ? ` - ${new Date(ev.dateEnd).toLocaleDateString("pl-PL", { day: "2-digit", month: "2-digit" })}` : ""}
-                  </div>
-                  <div className="text-sm">
-                    Typ: {ev.types.join(", ")} | Dystanse: {ev.distances.join("/")} km
-                  </div>
-                </li>
-              ))}
-            </ul>
-
-            <h2 className="font-semibold mb-2">Widok kalendarza:</h2>
-            <div className="grid grid-cols-7 gap-1 text-center text-sm">
-              {['Pn','Wt','Śr','Cz','Pt','So','Nd'].map(d => <div key={d} className="font-semibold">{d}</div>)}
-              {Array.from({length:firstDayOfWeek-1}).map((_,i)=><div key={`empty${i}`}></div>)}
-              {Array.from({length:daysInMonth}).map((_,i)=>{
-                const day = i+1;
-                const dayEvents = filtered.filter(ev => new Date(ev.dateStart).getDate() === day);
-                return (
-                  <div key={day} className="border h-24 p-1 rounded text-left overflow-hidden hover:bg-gray-50">
-                    <div className="font-semibold text-xs">{day}</div>
-                    {dayEvents.map(ev => (
-                      <div key={ev.id} className="text-[10px] truncate">
-                        {ev.url ? (
-                          <a href={ev.url} target="_blank" rel="noopener noreferrer" className="text-blue-700 hover:underline">{ev.title}</a>
-                        ) : ev.title}
-                      </div>
-                    ))}
-                  </div>
-                )
-              })}
+              {' '} - {event.dateStart}
+              {event.dateEnd ? ` do ${event.dateEnd}` : ''}
+              {' '}[{event.distances.join('/')} km]
             </div>
-          </div>
-        );
-      }
+          ))}
+        </div>
+      );
+    }
 
-      ReactDOM.createRoot(document.getElementById("root")).render(<KalendarzImprez />);
-    </script>
-  </body>
+    function KalendarzImprez() {
+      return (
+        <div>
+          <EventList />
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<KalendarzImprez />);
+  </script>
+</body>
 </html>
