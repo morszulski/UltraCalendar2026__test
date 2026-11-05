@@ -71,4 +71,5 @@ const EVENTS = [
   { id: 70, title: "Maraton Rowerowy Dookoła Polski - Zachód", dateStart: "2026-09-26", dateEnd: null, types: ["Sz"], distances: [1030], url: "https://mrdp.pl" },
   { id: 71, title: "PBT - Rozjazd", dateStart: "2026-10-03", dateEnd: null, types: ["G","M","Sz"], distances: [100,200,250,500,550], url: "https://www.polishbiketour.pl" },
   { id: 72, title: "Robinsonada Pomorska", dateStart: "2026-10-17", dateEnd: null, types: ["G"], distances: [80,150,250,350], url: "https://robinsonada.com.pl" },
+  { id: 73, title: "Bałtyk Bieszczady Tour (BBT)", dateStart: "2027-08-21", dateEnd: null, types: ["Sz"], distances: [1008], url: "https://1008.pl" },
 ];
