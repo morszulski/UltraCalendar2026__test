@@ -82,7 +82,7 @@ function App() {
   const handleNextMonth = () => setCurrentMonth((currentMonth + 1) % 12);
 
   const renderEventCard = (e) => (
-    <div key={e.id} className="event-card">
+    <div key={e.id} className="event-card" title={e.description || ""}>
       {e.url ? <a href={e.url} target="_blank" rel="noopener noreferrer">{e.title}</a> : <span>{e.title}</span>}
       <div className="event-details">
         {e.dateStart}{e.dateEnd ? ` – ${e.dateEnd}` : ''} | Typ: {e.types.join(', ')} | Dystans: {e.distances.join('/')} km
